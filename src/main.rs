@@ -1,6 +1,6 @@
 use clap::Parser as ClapParser;
 use parser::parse_content;
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, time::Instant};
 use util::{Error, ExpectedPath};
 
 mod parser;
@@ -9,9 +9,11 @@ mod util;
 #[derive(ClapParser)]
 struct Cli {
     directory: PathBuf,
+    #[arg(short, long)]
+    output_dir: Option<PathBuf>,
 }
 
-fn parse_file(path: PathBuf) -> Result<(), Error> {
+fn parse_file(path: PathBuf) -> Result<serde_json::Value, Error> {
     if let Err(error) = ExpectedPath::File.check_path(&path) {
         return Err(error);
     }
@@ -23,22 +25,10 @@ fn parse_file(path: PathBuf) -> Result<(), Error> {
         String::from_utf8(utf8)?
     };
 
-    let json = parse_content(content)?;
-    let parsed = serde_json::to_string_pretty(&json)?;
-    let parsed_path = PathBuf::from("docs_out").join(path).with_extension("json");
-
-    if let Some(parent) = parsed_path.parent() {
-        if !parent.exists() {
-            fs::create_dir_all(parent)?;
-        }
-    }
-
-    fs::write(parsed_path, parsed)?;
-
-    Ok(())
+    parse_content(content)
 }
 
-fn parse_path(path: PathBuf) -> Result<(), Error> {
+fn parse_path(custom_dir: Option<PathBuf>, path: PathBuf) -> Result<(), Error> {
     if let Err(error) = ExpectedPath::Dir.check_path(&path) {
         return Err(error);
     }
@@ -50,12 +40,24 @@ fn parse_path(path: PathBuf) -> Result<(), Error> {
             continue;
         };
 
-        let entry_path = entry.path();
+        let path = entry.path();
 
-        if entry_path.is_dir() {
-            parse_path(entry_path)?;
+        if path.is_dir() {
+            parse_path(custom_dir.clone(), path)?;
         } else {
-            parse_file(entry_path)?;
+            let json = parse_file(path.clone())?;
+            let parsed = serde_json::to_string_pretty(&json)?;
+            let parsed_path = { custom_dir.clone().unwrap_or(PathBuf::from("docs_out")) }
+                .join(path)
+                .with_extension("json");
+
+            if let Some(parent) = parsed_path.parent() {
+                if !parent.exists() {
+                    fs::create_dir_all(parent)?;
+                }
+            }
+
+            fs::write(parsed_path, parsed)?;
         }
     }
 
@@ -64,11 +66,14 @@ fn parse_path(path: PathBuf) -> Result<(), Error> {
 
 fn main() {
     let cli = Cli::parse();
+    let start = Instant::now();
 
-    if let Err(error) = parse_path(cli.directory) {
+    if let Err(error) = parse_path(cli.output_dir, cli.directory) {
         println!(
             "Failed to parse directory\n Reason:\n \t{}",
             error.to_string().replace("\n", "\n \t")
         );
     }
+
+    println!("Finished in {:?}", start.duration_since(Instant::now()));
 }
