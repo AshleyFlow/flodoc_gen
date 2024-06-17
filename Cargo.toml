@@ -3,6 +3,10 @@ name = "flodoc_gen"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "flo"
+path = "src/main.rs"
+
 [dependencies]
 pest = "2.7.10"
 pest_derive = "2.7.10"
