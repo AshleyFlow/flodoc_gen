@@ -1,0 +1,20 @@
+Doc = { Statement* ~ EOI }
+
+Statement = _{ Tag | AdvTag | CodeBlock }
+Tag       =  { Langle ~ Ident ~ String ~ Rangle }
+AdvTag    =  { Minus ~ Ident ~ Paragraph }
+CodeBlock =  { ThreeBackTicks ~ Ident ~ CodeBody ~ ThreeBackTicks }
+CodeBody  =  { (!ThreeBackTicks ~ ANY)* }
+
+String    = ${ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+Ident     = ${ (ASCII_ALPHA | "_")+ ~ (ASCII_ALPHA | NUMBER | "_" | "-")* }
+Paragraph =  { "{" ~ (!"}" ~ ANY)* ~ "}" }
+
+// These are for better error messages
+Langle         =  { "<" }
+Rangle         =  { ">" }
+Minus          =  { "-" }
+ThreeBackTicks = ${ BackTick{3} }
+BackTick       = _{ "`" }
+
+WHITESPACE = _{ WHITE_SPACE }
