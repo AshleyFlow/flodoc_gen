@@ -19,11 +19,21 @@ fn parse_file(path: PathBuf) -> Result<(), Error> {
     println!("Parsing file '{}'", path.display());
 
     let content = {
-        let utf8 = fs::read(path)?;
+        let utf8 = fs::read(&path)?;
         String::from_utf8(utf8)?
     };
 
-    parse_content(content)?;
+    let json = parse_content(content)?;
+    let parsed = serde_json::to_string_pretty(&json)?;
+    let parsed_path = PathBuf::from("docs_out").join(path).with_extension("json");
+
+    if let Some(parent) = parsed_path.parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+
+    fs::write(parsed_path, parsed)?;
 
     Ok(())
 }

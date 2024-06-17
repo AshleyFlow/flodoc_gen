@@ -4,6 +4,7 @@ use pest::{
     Parser,
 };
 use pest_derive::Parser;
+use serde_json::json;
 
 #[derive(Parser)]
 #[grammar = ".pest"]
@@ -18,8 +19,9 @@ macro_rules! next_pair {
     };
 }
 
-pub fn parse_content(content: String) -> Result<(), Error> {
+pub fn parse_content(content: String) -> Result<serde_json::Value, Error> {
     let doc = next_pair!(FlodocParser::parse(parser::Rule::Doc, &content)?);
+    let mut json_values = vec![];
 
     match doc.as_rule() {
         Rule::Doc => {
@@ -30,7 +32,7 @@ pub fn parse_content(content: String) -> Result<(), Error> {
                     break;
                 }
 
-                match item.as_rule() {
+                json_values.push(match item.as_rule() {
                     Rule::Tag => {
                         let mut item_inner = item.into_inner();
 
@@ -39,7 +41,10 @@ pub fn parse_content(content: String) -> Result<(), Error> {
                         let string = next_pair!(item_inner).as_str();
                         next_pair!(item_inner); // eat '>'
 
-                        println!("{tag}: {string}");
+                        json!({
+                            "tag": tag,
+                            "innerHTML": string
+                        })
                     }
                     Rule::AdvTag => {
                         let mut item_inner = item.into_inner();
@@ -53,7 +58,10 @@ pub fn parse_content(content: String) -> Result<(), Error> {
                             .trim_end_matches("\n")
                             .trim_end_matches("}");
 
-                        println!("{tag}: {string}");
+                        json!({
+                            "tag": tag,
+                            "innerHTML": string
+                        })
                     }
                     Rule::CodeBlock => {
                         let mut item_inner = item.into_inner();
@@ -68,12 +76,21 @@ pub fn parse_content(content: String) -> Result<(), Error> {
                             .trim_end_matches("}");
                         next_pair!(item_inner); // eat '```'
 
-                        println!("```{lang}\n{code}\n```");
+                        json!({
+                            "tag": "codeblock",
+                            "lang": lang,
+                            "code": code
+                        })
                     }
-                    _ => {}
-                }
-
-                // println!("{:?}", item.as_rule());
+                    _ => {
+                        return Err(Error::Parser(PestErr::new_from_span(
+                            ErrorVariant::CustomError {
+                                message: "Got unexpected".into(),
+                            },
+                            item.as_span(),
+                        )))
+                    }
+                });
             }
         }
         _ => {
@@ -86,5 +103,5 @@ pub fn parse_content(content: String) -> Result<(), Error> {
         }
     }
 
-    Ok(())
+    Ok(serde_json::Value::from(json_values))
 }
