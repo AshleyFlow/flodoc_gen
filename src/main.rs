@@ -23,7 +23,7 @@ fn parse_file(path: PathBuf) -> Result<(), Error> {
         String::from_utf8(utf8)?
     };
 
-    parse_content(content);
+    parse_content(content)?;
 
     Ok(())
 }

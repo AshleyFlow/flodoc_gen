@@ -4,6 +4,11 @@
 Luau is the best language I aint even gon lah
 }
 
+-p {
+We've got multiple lines
+    See?
+}
+
 <h2 "Tiny title">
 
 -p {
