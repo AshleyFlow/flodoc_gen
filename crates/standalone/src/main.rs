@@ -1,9 +1,8 @@
 use clap::Parser as ClapParser;
-use parser::parse_content;
+use flodoc_gen::{parse_content, FloError};
 use std::{fs, path::PathBuf, time::Instant};
-use util::{Error, ExpectedPath};
+use util::ExpectedPath;
 
-mod parser;
 mod util;
 
 #[derive(ClapParser)]
@@ -13,7 +12,7 @@ struct Cli {
     output_dir: Option<PathBuf>,
 }
 
-fn parse_file(path: PathBuf) -> Result<serde_json::Value, Error> {
+fn parse_file(path: PathBuf) -> Result<serde_json::Value, FloError> {
     if let Err(error) = ExpectedPath::File.check_path(&path) {
         return Err(error);
     }
@@ -28,7 +27,7 @@ fn parse_file(path: PathBuf) -> Result<serde_json::Value, Error> {
     parse_content(content)
 }
 
-fn parse_path(custom_dir: Option<PathBuf>, path: PathBuf) -> Result<(), Error> {
+fn parse_path(custom_dir: Option<PathBuf>, path: PathBuf) -> Result<(), FloError> {
     if let Err(error) = ExpectedPath::Dir.check_path(&path) {
         return Err(error);
     }

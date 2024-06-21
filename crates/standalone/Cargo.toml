@@ -1,0 +1,9 @@
+[package]
+name = "flo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+flodoc_gen = { path = "../library" }
+serde_json = "1.0.117"
+clap = { version = "4.5.7", features = ["derive"] }
