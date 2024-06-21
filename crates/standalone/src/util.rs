@@ -1,5 +1,5 @@
 use flodoc_gen::FloError;
-use std::{fmt::Display, io, path::PathBuf};
+use std::{fmt::Display, io, path::Path};
 
 pub enum ExpectedPath {
     Dir,
@@ -16,7 +16,7 @@ impl Display for ExpectedPath {
 }
 
 impl ExpectedPath {
-    pub fn check_path(self, path: &PathBuf) -> Result<(), FloError> {
+    pub fn check_path(self, path: &Path) -> Result<(), FloError> {
         let exists = path.exists();
         let matches_expected = match self {
             ExpectedPath::Dir => path.is_dir(),

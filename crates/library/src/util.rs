@@ -4,7 +4,7 @@ use std::{fmt::Display, io, string::FromUtf8Error};
 pub enum Error {
     IO(io::Error),
     FromUtf8(FromUtf8Error),
-    Parser(pest::error::Error<Rule>),
+    Parser(Box<pest::error::Error<Rule>>),
     Serde(serde_json::Error),
 }
 
@@ -22,7 +22,7 @@ impl From<FromUtf8Error> for Error {
 
 impl From<pest::error::Error<Rule>> for Error {
     fn from(value: pest::error::Error<Rule>) -> Self {
-        Self::Parser(value)
+        Self::Parser(Box::new(value))
     }
 }
 

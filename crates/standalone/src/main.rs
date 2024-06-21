@@ -13,9 +13,7 @@ struct Cli {
 }
 
 fn parse_file(path: PathBuf) -> Result<serde_json::Value, FloError> {
-    if let Err(error) = ExpectedPath::File.check_path(&path) {
-        return Err(error);
-    }
+    ExpectedPath::File.check_path(&path)?;
 
     println!("Parsing file '{}'", path.display());
 
@@ -28,9 +26,7 @@ fn parse_file(path: PathBuf) -> Result<serde_json::Value, FloError> {
 }
 
 fn parse_path(custom_dir: Option<PathBuf>, path: PathBuf) -> Result<(), FloError> {
-    if let Err(error) = ExpectedPath::Dir.check_path(&path) {
-        return Err(error);
-    }
+    ExpectedPath::Dir.check_path(&path)?;
 
     println!("Parsing directory '{}'", path.display());
 
@@ -70,7 +66,7 @@ fn main() {
     if let Err(error) = parse_path(cli.output_dir, cli.directory) {
         println!(
             "Failed to parse directory\n Reason:\n \t{}",
-            error.to_string().replace("\n", "\n \t")
+            error.to_string().replace('\n', "\n \t")
         );
     }
 

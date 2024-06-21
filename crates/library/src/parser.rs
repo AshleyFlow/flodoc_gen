@@ -42,10 +42,10 @@ pub fn parse_pair(item: Pair<'_, Rule>) -> Result<serde_json::Value, Error> {
             let tag = next_pair!(item_inner).as_str();
             let string = next_pair!(item_inner)
                 .as_str()
-                .trim_start_matches("{")
-                .trim_start_matches("\n")
-                .trim_end_matches("\n")
-                .trim_end_matches("}");
+                .trim_start_matches('{')
+                .trim_start_matches('\n')
+                .trim_end_matches('\n')
+                .trim_end_matches('}');
 
             Ok(json!({
                 "tag": tag,
@@ -59,10 +59,10 @@ pub fn parse_pair(item: Pair<'_, Rule>) -> Result<serde_json::Value, Error> {
             let lang = next_pair!(item_inner).as_str();
             let code = next_pair!(item_inner)
                 .as_str()
-                .trim_start_matches("{")
-                .trim_start_matches("\n")
-                .trim_end_matches("\n")
-                .trim_end_matches("}");
+                .trim_start_matches('{')
+                .trim_start_matches('\n')
+                .trim_end_matches('\n')
+                .trim_end_matches('}');
             next_pair!(item_inner); // eat '```'
 
             Ok(json!({
@@ -72,12 +72,12 @@ pub fn parse_pair(item: Pair<'_, Rule>) -> Result<serde_json::Value, Error> {
             }))
         }
         _ => {
-            return Err(Error::Parser(PestErr::new_from_span(
+            return Err(Error::Parser(Box::new(PestErr::new_from_span(
                 ErrorVariant::CustomError {
                     message: "Got unexpected".into(),
                 },
                 item.as_span(),
-            )))
+            ))))
         }
     }
 }
@@ -99,12 +99,12 @@ pub fn parse_content(content: String) -> Result<serde_json::Value, Error> {
             }
         }
         _ => {
-            return Err(Error::Parser(PestErr::new_from_span(
+            return Err(Error::Parser(Box::new(PestErr::new_from_span(
                 ErrorVariant::CustomError {
                     message: "Expected document".into(),
                 },
                 doc.as_span(),
-            )))
+            ))))
         }
     }
 
